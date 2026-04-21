@@ -1,7 +1,19 @@
 import { useState, useEffect } from "react";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
 import ResultCard from "./ResultCard";
 import CollectorForm from "./CollectorForm";   
+import LoginPage from "./LoginPage";
+import ProtectedRoute from "./ProtectedRoute";
+import { trackVisit } from "./api";
+import doodleBottleBlue from "./assets/doodles/doodle-bottle-blue.svg";
+import doodleCupBlue from "./assets/doodles/doodle-cup-blue.svg";
+import doodleToothbrushGreen from "./assets/doodles/doodle-toothbrush-green.svg";
+import doodleForkYellow from "./assets/doodles/doodle-fork-yellow.svg";
+import doodleBagGreen from "./assets/doodles/doodle-bag-green.svg";
+import doodleRingsBlue from "./assets/doodles/doodle-rings-blue.svg";
+import doodleCrumpleGray from "./assets/doodles/doodle-crumple-gray.svg";
+import doodleCardboardBrown from "./assets/doodles/doodle-cardboard-brown.svg";
 import "./App.css";
 
 // ── Tutorials ─────────────────────────────────────────────────
@@ -49,7 +61,25 @@ function getServiceKeyword(item) {
 }
 
 // ─────────────────────────────────────────────────────────────
-function App() {
+function MainApp() {
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const updateScrollVar = () => {
+      const scrollY = window.scrollY;
+      const phase = Math.min(2, scrollY / Math.max(window.innerHeight, 1));
+
+      document.documentElement.style.setProperty("--scrollY", `${scrollY}px`);
+      document.documentElement.style.setProperty("--scrollPhase", phase.toFixed(3));
+    };
+
+    updateScrollVar();
+    window.addEventListener("scroll", updateScrollVar, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", updateScrollVar);
+    };
+  }, []);
 
   // ── existing state ────────────────────────────────────────
   const [results,      setResults]      = useState([]);
@@ -59,6 +89,40 @@ function App() {
 
   // ── collectors list — fetched from MongoDB on mount
   const [collectors, setCollectors] = useState([]);
+
+  useEffect(() => {
+    const selectors = [
+      ".section-title",
+      ".section-subtitle",
+      ".card",
+      ".service-card",
+      ".collector-card",
+      ".about-card",
+      ".register-cta",
+      ".video-card"
+    ];
+
+    const elements = document.querySelectorAll(selectors.join(","));
+    elements.forEach((el) => el.classList.add("reveal-item"));
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+          }
+        });
+      },
+      { threshold: 0.16 }
+    );
+
+    elements.forEach((el) => observer.observe(el));
+
+    return () => {
+      elements.forEach((el) => observer.unobserve(el));
+      observer.disconnect();
+    };
+  }, [hasSearched, results.length, collectors.length]);
 
   // Fetch collectors from MongoDB filtered by searched item
   useEffect(() => {
@@ -83,6 +147,11 @@ function App() {
 
   // ── NEW: controls whether the registration modal is visible ─
   const [showForm, setShowForm] = useState(false);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    navigate("/login", { replace: true });
+  };
 
  const handleSearch = async (item) => {
   const key = item.toLowerCase().trim();
@@ -177,11 +246,28 @@ function App() {
               <li><a href="#about">About</a></li>
             </ul>
           </nav>
+          <button className="logout-btn" onClick={handleLogout}>Logout</button>
         </div>
       </header>
 
       {/* ── HOME ────────────────────────────────────────── */}
       <section id="home" className="section home-section">
+        <div className="trash-parallax" aria-hidden="true">
+          <div className="trash-set trash-set-a">
+            <img className="trash-item trash-bottle" src={doodleBottleBlue} alt="" />
+            <img className="trash-item trash-crumple" src={doodleCrumpleGray} alt="" />
+            <img className="trash-item trash-cardboard" src={doodleCardboardBrown} alt="" />
+            <img className="trash-item trash-cup" src={doodleCupBlue} alt="" />
+            <img className="trash-item trash-toothbrush" src={doodleToothbrushGreen} alt="" />
+          </div>
+          <div className="trash-set trash-set-b">
+            <img className="trash-item trash-bag" src={doodleBagGreen} alt="" />
+            <img className="trash-item trash-rings" src={doodleRingsBlue} alt="" />
+            <img className="trash-item trash-fork" src={doodleForkYellow} alt="" />
+            <img className="trash-item trash-cardboard-b" src={doodleCardboardBrown} alt="" />
+            <img className="trash-item trash-cup-b" src={doodleCupBlue} alt="" />
+          </div>
+        </div>
         <div className="home-content">
           <h2 className="home-title">
             Turn Waste Into <span className="accent">Something Useful</span>
@@ -302,6 +388,7 @@ function App() {
     <button
       className="map-btn"
       onClick={() => {
+        trackVisit(serviceKeyword);
         const query = encodeURIComponent(serviceKeyword + " near me");
         window.open(
           `https://www.google.com/maps/search/?api=1&query=${query}`,
@@ -349,6 +436,7 @@ function App() {
 
               <a
                 className="wa-btn"
+                onClick={() => trackVisit(c.name)}
                 href={`https://wa.me/91${c.phone}?text=${encodeURIComponent(
                   "Hi! I found your listing on ReUseIt and I have some waste I'd like to give for reuse/recycling."
                 )}`}
@@ -428,6 +516,28 @@ function App() {
       </footer>
 
     </div>
+  );
+}
+
+function App() {
+  const isLoggedIn = Boolean(localStorage.getItem("user"));
+
+  return (
+    <Routes>
+      <Route path="/login" element={<LoginPage />} />
+      <Route
+        path="/"
+        element={
+          <ProtectedRoute>
+            <MainApp />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="*"
+        element={<Navigate to={isLoggedIn ? "/" : "/login"} replace />}
+      />
+    </Routes>
   );
 }
 
