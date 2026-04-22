@@ -27,7 +27,18 @@ function LoginPage() {
       localStorage.setItem("user", JSON.stringify(res.data));
       navigate("/", { replace: true });
     } catch (err) {
-      setError("Invalid credentials");
+      if (err.code === "ERR_NETWORK" || !err.response) {
+        setError("Cannot connect to server. Please try again later.");
+        return;
+      }
+
+      const status = err.response.status;
+      if (status === 401 || status === 403) {
+        setError("Invalid credentials");
+        return;
+      }
+
+      setError(err.response.data?.message || "Login failed. Please try again.");
     }
   };
 

@@ -63,6 +63,16 @@ function getServiceKeyword(item) {
   return "waste management";
 }
 
+function getWhatsAppLink(phone, message) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  if (!digits) return null;
+
+  const fullNumber = digits.length === 10 ? `91${digits}` : digits;
+  if (fullNumber.length < 10) return null;
+
+  return `https://wa.me/${fullNumber}?text=${encodeURIComponent(message)}`;
+}
+
 // ──────────────────────────────────────────────────────────
 function MainApp() {
   const navigate = useNavigate();
@@ -198,8 +208,8 @@ function MainApp() {
       try {
         // If user has searched, filter by that item; otherwise get all
         const url = hasSearched 
-          ? `http://localhost:5000/api/services/search?type=${encodeURIComponent(searchedItem)}`
-          : "http://localhost:5000/api/services";
+          ? `http://localhost:5000/api/services/google-search?type=${encodeURIComponent(serviceKeyword)}`
+          : "http://localhost:5000/api/services?validateWhatsapp=true";
         
         const response = await fetch(url);
         const data = await response.json();
@@ -211,7 +221,7 @@ function MainApp() {
       }
     };
     fetchCollectors();
-  }, [searchedItem, hasSearched]);
+  }, [searchedItem, hasSearched, serviceKeyword]);
 
   // ── NEW: controls whether the registration modal is visible ─
   const [showForm, setShowForm] = useState(false);
@@ -520,7 +530,7 @@ function MainApp() {
               </div>
 
               <div className="collector-addr">📍 {c.address}</div>
-              <div className="collector-dist">✓ {c.distance} away</div>
+              {c.distance && <div className="collector-dist">✓ {c.distance} away</div>}
 
               {/* Waste type tags — shown only for new registrations */}
               {c.wasteTypes && c.wasteTypes.length > 0 && (
@@ -536,17 +546,30 @@ function MainApp() {
                 <p className="collector-desc">"{c.description}"</p>
               )}
 
-              <a
-                className="wa-btn"
-                onClick={() => trackVisit(c.name)}
-                href={`https://wa.me/91${c.phone}?text=${encodeURIComponent(
-                  "Hi! I found your listing on ReUseIt and I have some waste I'd like to give for reuse/recycling."
-                )}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                💬 WhatsApp
-              </a>
+              {(() => {
+                const waLink = c.whatsappNumber
+                  ? getWhatsAppLink(
+                    c.whatsappNumber,
+                    "Hi! I found your listing on ReUseIt and I have some waste I'd like to give for reuse/recycling."
+                  )
+                  : null;
+
+                if (!waLink) {
+                  return null;
+                }
+
+                return (
+                  <a
+                    className="wa-btn"
+                    onClick={() => trackVisit(c.name)}
+                    href={waLink}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    💬 WhatsApp
+                  </a>
+                );
+              })()}
             </div>
           ))}
         </div>
@@ -597,24 +620,41 @@ function MainApp() {
         <div className="footer-container">
           <div className="footer-section">
             <h3>🌱 ReUseIt</h3>
-            <p>Helping you turn everyday waste into useful, creative ideas and promoting sustainable living.</p>
+            <p>
+              A platform that helps users reuse waste by providing ideas, tutorials,
+              and connections to nearby recycling or upcycling services, promoting
+              sustainable consumption and cleaner communities.
+            </p>
           </div>
           <div className="footer-section">
-            <h3>☎️ Contact</h3>
-            <p>📩 reuseit@gmail.com</p>
-            <p>📞 +91 9876543210</p>
-            <p>📍 India</p>
+            <h3>☎ Contact</h3>
+            <p>8767463879, 98347 85341</p>
+            <p>
+              <a
+                href="https://wa.me/918767463879?text=Hi%20ReUseIt%20team%2C%20I%20want%20to%20know%20more%20about%20the%20platform."
+                target="_blank"
+                rel="noreferrer"
+              >
+                Chat on WhatsApp: 8767463879
+              </a>
+            </p>
           </div>
           <div className="footer-section">
             <h3>👩‍💻 Team</h3>
-            <p>Alciya · Nicole · Bliss · Rishal</p>
-            <p style={{ marginTop: "8px", fontSize: "13px", color: "#888" }}>
-              Mini Project — 2026
+            <p>Nicole Dabre, Alciya Dodti, Rishal Fernandes, Bliss Gonsalves</p>
+            <p>
+              <a
+                href="https://github.com/Alciya-dodti/waste-Reuse-demo"
+                target="_blank"
+                rel="noreferrer"
+              >
+                GitHub Repo
+              </a>
             </p>
           </div>
         </div>
         <div className="footer-bottom">
-          <p>© 2026 Waste Reuse Helper Project | All Rights Reserved</p>
+          <p>© 2026 ReUseIt. All rights reserved. Content and branding are project copyright of the ReUseIt team.</p>
         </div>
       </footer>
 
