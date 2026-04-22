@@ -19,7 +19,7 @@ import Lenis from "lenis";
 
 gsap.registerPlugin(ScrollTrigger);
 
-// ── Tutorials ─────────────────────────────────────────────────
+// ── Tutorials ─────────────────────
 const tutorials = {
   "plastic bottle": [
     { title: "Self-Watering Planter from Plastic Bottle", views: "1.2M", duration: "8:24",  query: "self watering planter plastic bottle DIY" },
@@ -63,7 +63,7 @@ function getServiceKeyword(item) {
   return "waste management";
 }
 
-// ─────────────────────────────────────────────────────────────
+// ──────────────────────────────────────────────────────────
 function MainApp() {
   const navigate = useNavigate();
 
@@ -87,7 +87,7 @@ function MainApp() {
     };
   }, []);
 
-  // ── existing state ────────────────────────────────────────
+  // ── existing state ─────────────────────────────────────
   const [results,      setResults]      = useState([]);
   const [searchedItem, setSearchedItem] = useState("");
   const [hasSearched,  setHasSearched]  = useState(false);
