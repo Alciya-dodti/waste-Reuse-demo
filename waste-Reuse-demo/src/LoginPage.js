@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import API from "./api";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -13,7 +14,7 @@ function LoginPage() {
     }
   }, [navigate]);
 
-  const handleLogin = (event) => {
+  const handleLogin = async (event) => {
     event.preventDefault();
 
     if (!email.trim() || !password.trim()) {
@@ -21,13 +22,13 @@ function LoginPage() {
       return;
     }
 
-    const user = {
-      email: email.trim(),
-      loggedInAt: new Date().toISOString()
-    };
-
-    localStorage.setItem("user", JSON.stringify(user));
-    navigate("/", { replace: true });
+    try {
+      const res = await API.post("/users/login", { email, password });
+      localStorage.setItem("user", JSON.stringify(res.data));
+      navigate("/", { replace: true });
+    } catch (err) {
+      setError("Invalid credentials");
+    }
   };
 
   return (

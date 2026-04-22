@@ -5,7 +5,7 @@ import ResultCard from "./ResultCard";
 import CollectorForm from "./CollectorForm";   
 import LoginPage from "./LoginPage";
 import ProtectedRoute from "./ProtectedRoute";
-import { trackVisit } from "./api";
+import API, { trackVisit } from "./api";
 import plasticBottle from "./assets/items/plastic_bottle.png";
 import crumpledPaper from "./assets/items/crumpled_paper.png";
 import tinCan from "./assets/items/tin_can.png";
@@ -91,6 +91,7 @@ function MainApp() {
   const [results,      setResults]      = useState([]);
   const [searchedItem, setSearchedItem] = useState("");
   const [hasSearched,  setHasSearched]  = useState(false);
+  const [errorMsg, setErrorMsg] = useState("");
   const serviceKeyword = getServiceKeyword(searchedItem);
 
   // ── collectors list — fetched from MongoDB on mount
@@ -225,25 +226,26 @@ function MainApp() {
 
   setSearchedItem(item);
   setHasSearched(true);
+  setErrorMsg("");
 
   try {
     const response = await fetch(
       `http://localhost:5000/api/reuse/search?q=${encodeURIComponent(key)}`
     );
 
-    // If backend returns 404 or error, show popup
+    // If backend returns 404 or error, show error message
     if (!response.ok) {
       const errorData = await response.json();
-      window.alert(errorData.message || "You have entered invalid data.");
+      setErrorMsg(errorData.message || "You have entered an invalid recyclable item. Please enter a valid recyclable item.");
       setResults([]);
       return;
     }
 
     const data = await response.json();
 
-    // If no results, show popup
+    // If no results, show error message
     if (!Array.isArray(data) || data.length === 0) {
-      window.alert("You have entered invalid data.");
+      setErrorMsg("You have entered an invalid recyclable item. Please enter a valid recyclable item.");
       setResults([]);
       return;
     }
@@ -251,7 +253,7 @@ function MainApp() {
     setResults(data);
   } catch (error) {
     console.error("Error fetching recommendations:", error);
-    window.alert("You have entered invalid data.");
+    setErrorMsg("You have entered an invalid recyclable item. Please enter a valid recyclable item.");
     setResults([]);
   }
 
@@ -282,6 +284,25 @@ function MainApp() {
       console.error("Error saving collector:", error);
       // Still add locally even if backend fails
       setCollectors((prev) => [newCollector, ...prev]);
+    }
+  };
+
+  // Example: Submitting a waste item (add this logic where you POST waste)
+  const submitWasteItem = async (itemName, category) => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    if (!user || !user.userId) {
+      alert("You must be logged in to submit a waste item.");
+      return;
+    }
+    try {
+      await API.post("/waste", {
+        name: itemName,
+        category,
+        user: user.userId
+      });
+      // handle success (e.g., show message or refresh list)
+    } catch (err) {
+      alert("Failed to submit waste item.");
     }
   };
 
@@ -375,16 +396,25 @@ function MainApp() {
           ))}
         </div>
 
+
         {hasSearched && (
           <>
-            <p className="results-heading">
-              Showing ideas for: <strong>"{searchedItem}"</strong>
-            </p>
-            <div className="results">
-              {results.map((r, index) => (
-                <ResultCard key={index} {...r} />
-              ))}
-            </div>
+            {errorMsg ? (
+              <div className="error-msg" style={{ color: "#d93025", margin: "16px 0", fontWeight: 500, fontSize: "16px" }}>
+                {errorMsg}
+              </div>
+            ) : (
+              <>
+                <p className="results-heading">
+                  Showing ideas for: <strong>"{searchedItem}"</strong>
+                </p>
+                <div className="results">
+                  {results.map((r, index) => (
+                    <ResultCard key={index} {...r} />
+                  ))}
+                </div>
+              </>
+            )}
           </>
         )}
 

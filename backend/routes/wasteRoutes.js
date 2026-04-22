@@ -11,4 +11,24 @@ router.get("/", async (req, res) => {
   }
 });
 
+
+// POST /api/waste
+router.post("/", async (req, res) => {
+  try {
+    const { name, category, user } = req.body;
+    if (!name || !user) {
+      return res.status(400).json({ message: "name and user are required" });
+    }
+    const newWaste = new WasteItem({
+      name,
+      category: category || "General",
+      user
+    });
+    const savedWaste = await newWaste.save();
+    res.status(201).json(savedWaste);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;
