@@ -1,3 +1,5 @@
+/* eslint-disable no-unused-vars */
+
 import { useState, useEffect } from "react";
 import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 import SearchBar from "./SearchBar";
