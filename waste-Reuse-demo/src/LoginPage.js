@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "./api";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -14,7 +13,7 @@ function LoginPage() {
     }
   }, [navigate]);
 
-  const handleLogin = async (event) => {
+  const handleLogin = (event) => {
     event.preventDefault();
 
     if (!email.trim() || !password.trim()) {
@@ -22,24 +21,16 @@ function LoginPage() {
       return;
     }
 
-    try {
-      const res = await API.post("/users/login", { email, password });
-      localStorage.setItem("user", JSON.stringify(res.data));
-      navigate("/", { replace: true });
-    } catch (err) {
-      if (err.code === "ERR_NETWORK" || !err.response) {
-        setError("Cannot connect to server. Please try again later.");
-        return;
-      }
+    const localUser = {
+      userId: `local-${email.trim().toLowerCase()}`,
+      email: email.trim().toLowerCase(),
+      role: "user",
+      authSource: "local"
+    };
 
-      const status = err.response.status;
-      if (status === 401 || status === 403) {
-        setError("Invalid credentials");
-        return;
-      }
-
-      setError(err.response.data?.message || "Login failed. Please try again.");
-    }
+    localStorage.setItem("user", JSON.stringify(localUser));
+    setError("");
+    navigate("/", { replace: true });
   };
 
   return (
