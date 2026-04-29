@@ -1,4 +1,5 @@
 import { useState } from "react";
+import StarRating from "./components/StarRating";
 
 // ResultCard receives these props from App.js:
 //   title       — name of the reuse idea
@@ -30,6 +31,11 @@ function ResultCard({ title, description, difficulty, icon }) {
           {difficulty}
         </span>
       )}
+
+      {/* Ratings */}
+      <div style={{ marginTop: 12 }}>
+        <StarRating id={title || "unknown_result"} />
+      </div>
     </div>
   );
 }

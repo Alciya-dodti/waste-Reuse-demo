@@ -226,11 +226,10 @@ body::after {
 }
 
 .section {
-  position: sticky;
-  top: 0;
+  position: relative;
+  top: auto;
   width: 100%;
-    /* Slightly shorter hero to keep the headline visible without overflow */
-    min-height: 85vh;
+  min-height: auto;
   margin: 0;
   padding: 10vh 5vw;
   box-sizing: border-box;
@@ -238,8 +237,8 @@ body::after {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  overflow: hidden;
-  box-shadow: 0 -15px 40px rgba(0,0,0,0.08); /* Cast shadow on prev section pinned under it */
+  overflow: visible;
+  box-shadow: 0 -15px 40px rgba(0,0,0,0.08);
   border-radius: 0;
 }
 
@@ -398,6 +397,23 @@ body::after {
 .home-section .btn-primary {
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.22);
 }
+
+/* New micro-interactions and animated helpers */
+.card-hovered {
+  transform: translateY(-6px) scale(1.01);
+  transition: transform 220ms cubic-bezier(.2,.9,.2,1), box-shadow 220ms ease;
+  box-shadow: 0 18px 46px rgba(56, 120, 76, 0.12);
+}
+
+.star-rating svg { filter: drop-shadow(0 2px 6px rgba(47, 111, 73, 0.12)); }
+.star-rating .star-filled path { transform-origin: center; transition: transform 180ms ease; }
+.star-rating svg:hover .star-filled path { transform: scale(1.06) translateY(-1px); }
+
+.poll-card button:disabled { opacity: 0.95; }
+
+/* subtle focus outlines */
+button:focus { outline: 3px solid rgba(56,120,76,0.12); outline-offset: 2px; }
+
 
 .trash-parallax {
   position: fixed;

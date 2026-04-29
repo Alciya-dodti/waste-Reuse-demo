@@ -4,8 +4,24 @@
  */
 import axios from "axios";
 
+const API_BASE_URL = process.env.REACT_APP_API_URL;
+
+if (!API_BASE_URL) {
+  console.error("API base URL is missing");
+}
+
+export function getApiBaseUrl() {
+  return (API_BASE_URL || "").replace(/\/+$/, "");
+}
+
+export function buildApiUrl(path) {
+  const baseUrl = getApiBaseUrl();
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${baseUrl}${normalizedPath}`;
+}
+
 const API = axios.create({
-  baseURL: process.env.REACT_APP_API_URL || "http://localhost:5000/api",
+  baseURL: getApiBaseUrl(),
   timeout: 10000
 });
 

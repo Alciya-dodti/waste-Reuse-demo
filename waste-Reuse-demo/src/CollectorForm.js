@@ -45,6 +45,8 @@ function CollectorForm({ onRegister, onClose }) {
   const [address,     setAddress]     = useState("");
   const [city,        setCity]        = useState("");
   const [pincode,     setPincode]     = useState("");
+  const [latitude,    setLatitude]    = useState("");
+  const [longitude,   setLongitude]   = useState("");
   const [type,        setType]        = useState("");
   const [wasteTypes,  setWasteTypes]  = useState([]); // array of selected types
   const [description, setDescription] = useState("");
@@ -62,18 +64,51 @@ function CollectorForm({ onRegister, onClose }) {
     );
   };
 
+  const fillCurrentLocation = () => {
+    if (!navigator.geolocation) {
+      setErrors((prev) => ({ ...prev, location: "Location access is not available in this browser" }));
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setLatitude(position.coords.latitude.toFixed(6));
+        setLongitude(position.coords.longitude.toFixed(6));
+        setErrors((prev) => ({ ...prev, location: "" }));
+      },
+      () => {
+        setErrors((prev) => ({ ...prev, location: "Unable to read your current location" }));
+      },
+      { enableHighAccuracy: true, timeout: 12000, maximumAge: 300000 }
+    );
+  };
+
   // Validate all fields before submitting
   const validate = () => {
     const e = {};
     if (!name.trim())    e.name    = "Name is required";
     if (!phone.trim())   e.phone   = "Phone number is required";
-    else if (!/^\d{10}$/.test(phone.trim())) e.phone = "Enter a valid 10-digit number";
+    else if (!/^[+\d][\d\s-]{7,19}$/.test(phone.trim())) e.phone = "Enter a valid phone number";
     if (!address.trim()) e.address = "Address is required";
     if (!city.trim())    e.city    = "City is required";
     if (!pincode.trim()) e.pincode = "PIN code is required";
     else if (!/^\d{6}$/.test(pincode.trim())) e.pincode = "Enter a valid 6-digit PIN";
     if (!type)           e.type    = "Please select a collector type";
     if (wasteTypes.length === 0) e.wasteTypes = "Select at least one waste type";
+
+    const latText = latitude.trim();
+    const lngText = longitude.trim();
+    if ((latText && !lngText) || (!latText && lngText)) {
+      e.location = "Enter both latitude and longitude, or leave both blank";
+    } else if (latText && lngText) {
+      const latValue = Number(latText);
+      const lngValue = Number(lngText);
+      if (Number.isNaN(latValue) || Number.isNaN(lngValue)) {
+        e.location = "Latitude and longitude must be numbers";
+      } else if (latValue < -90 || latValue > 90 || lngValue < -180 || lngValue > 180) {
+        e.location = "Latitude must be between -90 and 90, longitude between -180 and 180";
+      }
+    }
     return e;
   };
 
@@ -94,6 +129,8 @@ function CollectorForm({ onRegister, onClose }) {
       address:  `${address.trim()}, ${city.trim()} ${pincode.trim()}`,
       distance: "Just registered",
       phone:    phone.trim(),
+      lat:      latitude.trim() ? Number(latitude.trim()) : undefined,
+      lng:      longitude.trim() ? Number(longitude.trim()) : undefined,
       icon:     TYPE_ICONS[type] || "♻️",
       wasteTypes,
       description: description.trim(),
@@ -164,15 +201,13 @@ function CollectorForm({ onRegister, onClose }) {
             <div className="form-group">
               <label className="form-label">Phone Number *</label>
               <div className="phone-input-wrap">
-                <span className="phone-prefix">+91</span>
                 <input
                   className={`form-input phone-input ${errors.phone ? "input-error" : ""}`}
                   type="tel"
-                  placeholder="10-digit number"
+                  placeholder="e.g. +91 9876543210"
                   value={phone}
-                  maxLength={10}
                   onChange={(e) => {
-                    setPhone(e.target.value.replace(/\D/, "")); // digits only
+                    setPhone(e.target.value);
                     setErrors((prev) => ({ ...prev, phone: "" }));
                   }}
                 />
@@ -229,6 +264,43 @@ function CollectorForm({ onRegister, onClose }) {
               />
               {errors.pincode && <span className="error-msg">{errors.pincode}</span>}
             </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Latitude <span className="optional-label">(optional)</span></label>
+              <input
+                className={`form-input ${errors.location ? "input-error" : ""}`}
+                type="text"
+                placeholder="e.g. 19.0760"
+                value={latitude}
+                onChange={(e) => {
+                  setLatitude(e.target.value);
+                  setErrors((prev) => ({ ...prev, location: "" }));
+                }}
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">Longitude <span className="optional-label">(optional)</span></label>
+              <input
+                className={`form-input ${errors.location ? "input-error" : ""}`}
+                type="text"
+                placeholder="e.g. 72.8777"
+                value={longitude}
+                onChange={(e) => {
+                  setLongitude(e.target.value);
+                  setErrors((prev) => ({ ...prev, location: "" }));
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <button type="button" className="video-btn" onClick={fillCurrentLocation}>
+              Use current location
+            </button>
+            {errors.location && <span className="error-msg">{errors.location}</span>}
           </div>
 
           {/* ── Collector Type ── */}

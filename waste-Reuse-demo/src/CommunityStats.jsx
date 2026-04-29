@@ -1,9 +1,13 @@
 import { useEffect, useState } from "react";
 import API from "./api";
+import Poll from "./components/Poll";
+import Leaderboard from "./components/Leaderboard";
+import Lottie from "lottie-react";
 
 function CommunityStats({ refreshKey }) {
   const [stats, setStats] = useState(null);
   const [error, setError] = useState("");
+  const [animationData, setAnimationData] = useState(null);
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -15,6 +19,20 @@ function CommunityStats({ refreshKey }) {
         setError("Unable to load community statistics at this time.");
       }
     };
+
+    // load a small celebratory Lottie animation (CDN)
+    const loadAnim = async () => {
+      try {
+        const url = "https://assets9.lottiefiles.com/packages/lf20_jbrw3hcz.json";
+        const r = await fetch(url);
+        const j = await r.json();
+        setAnimationData(j);
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    loadAnim();
 
     fetchStats();
   }, [refreshKey]);
@@ -93,6 +111,26 @@ function CommunityStats({ refreshKey }) {
           </div>
         </div>
       </div>
+
+      {/* Small poll for community feedback */}
+      <div style={{ marginTop: 20, maxWidth: 720, marginLeft: "auto", marginRight: "auto", display: "flex", gap: 20, alignItems: "flex-start" }}>
+        <div style={{ flex: 1 }}>
+          <Poll
+            id="reuse_preference"
+            question="Which reuse approach do you prefer?"
+            options={["Repair", "Donate", "Repurpose", "Sell"]}
+          />
+        </div>
+
+        {animationData && (
+          <div style={{ width: 140, height: 140, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Lottie animationData={animationData} loop={true} />
+          </div>
+        )}
+      </div>
+
+      {/* Leaderboard for top-rated ideas (backend-driven) */}
+      <Leaderboard />
     </div>
   );
 }

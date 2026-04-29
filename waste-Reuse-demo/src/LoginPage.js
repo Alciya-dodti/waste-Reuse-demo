@@ -4,6 +4,7 @@
  */
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { buildApiUrl } from "./api";
 
 function LoginPage() {
   const navigate = useNavigate();
@@ -28,7 +29,7 @@ function LoginPage() {
 
     try {
       // --- NEW: API call to your backend ---
-      const response = await fetch("http://localhost:5000/api/users/login", {
+      const response = await fetch(buildApiUrl("/api/users/login"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
