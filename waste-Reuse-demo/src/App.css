@@ -42,9 +42,6 @@ html.lenis, html.lenis body {
 .lenis.lenis-stopped {
   overflow: hidden;
 }
-.lenis.lenis-scrolling iframe {
-  pointer-events: none;
-}
 
 body {
   position: relative;
@@ -232,7 +229,8 @@ body::after {
   position: sticky;
   top: 0;
   width: 100%;
-  min-height: 100vh;
+    /* Slightly shorter hero to keep the headline visible without overflow */
+    min-height: 85vh;
   margin: 0;
   padding: 10vh 5vw;
   box-sizing: border-box;
@@ -280,16 +278,19 @@ body::after {
    ───────────────────────────────────────────────────────────── */
 .outlined-title {
   position: absolute;
-  top: 50%;
+  top: 72%;
   left: 50%;
+  /* Subtle outlined marquee placed behind the hero copy. Reduce size
+     and opacity so it doesn't dominate the layout. */
   transform: translate(-50%, -50%);
   font-family: "League Spartan", sans-serif;
-  font-size: clamp(100px, 25vw, 400px);
+  font-size: clamp(90px, 16vw, 240px);
   font-weight: 900;
   color: transparent;
-  -webkit-text-stroke: 2px rgba(98, 128, 102, 0.15); /* Subtly dark green outline */
+  -webkit-text-stroke: 1.6px rgba(98, 128, 102, 0.09); /* lighter outline */
+  opacity: 0.85;
   white-space: nowrap;
-  letter-spacing: 2px;
+  letter-spacing: 1.6px;
   z-index: 0;
   pointer-events: none;
   user-select: none;
@@ -297,6 +298,19 @@ body::after {
 
 .outlined-light {
   -webkit-text-stroke: 2px rgba(255, 255, 255, 0.12); /* Light outline for dark backgrounds */
+}
+
+/* Hide the oversized outlined marquee on narrower viewports to avoid
+   content overlap and clipping. It remains visible on large screens. */
+@media (max-width: 1200px) {
+  .outlined-title {
+    display: none;
+  }
+}
+
+/* QUICK FIX: hide decorative marquee entirely to avoid layout breakage */
+.outlined-title {
+  display: none !important;
 }
 
 /* Make sure interactive elements stay above the giant wording */
@@ -325,6 +339,49 @@ body::after {
   margin-bottom: 30px;
 }
 
+.location-banner {
+  width: min(820px, 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: -6px 0 22px;
+  padding: 14px 18px;
+  border-radius: 18px;
+  border: 1px solid #d7e1d7;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 10px 22px rgba(72, 98, 77, 0.08);
+}
+
+.location-banner strong {
+  display: block;
+  margin-bottom: 4px;
+  color: #314335;
+}
+
+.location-banner p {
+  color: #667a69;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.location-btn {
+  border: none;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #eef5e7;
+  background: #5f7f65;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.location-btn:disabled {
+  opacity: 0.7;
+  cursor: progress;
+}
+
 .home-section {
   justify-content: center;
   border-radius: 0;
@@ -333,6 +390,7 @@ body::after {
   min-height: 100vh;
   background: transparent;
   box-shadow: none;
+  overflow: visible; /* allow decorative marquee to extend outside hero */
 }
 
 .home-section .home-title,
@@ -565,19 +623,40 @@ body::after {
 .home-title {
   font-family: "League Spartan", sans-serif;
   color: #101612;
-  font-size: clamp(58px, 13vw, 170px);
-  line-height: 0.86;
-  max-width: 980px;
+    /* Tighter headline sizing to avoid overflowing the hero */
+    font-size: clamp(40px, 6.5vw, 110px);
+  line-height: 1.1; /* Increased for better row alignment */
+  max-width: min(980px, 94%);
   margin-bottom: 18px;
   font-weight: 900;
   text-transform: uppercase;
   letter-spacing: 1px;
-  white-space: nowrap; /* keep lines from breaking so horizontal scroll works */
+  hyphens: auto;
+  /* allow wrapping so long titles don't get clipped on smaller viewports */
+  white-space: normal;
+  word-wrap: break-word;
+  overflow-wrap: anywhere;
 }
 
 .title-row {
-  display: block;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: baseline;
+  overflow: hidden; /* Contain GSAP movement */
   will-change: transform;
+}
+
+.title-row-left {
+  order: 1;
+}
+
+.title-row-right {
+  position: relative !important;
+  left: 0;
+  transform: translateX(0);
+  max-width: 100%;
+  hyphens: auto;
 }
 
 .home-subtitle {
@@ -1005,6 +1084,20 @@ body::after {
   margin-bottom: 6px;
 }
 
+.collector-rating {
+  font-size: 12px;
+  color: #5d6f5f;
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.collector-phone {
+  font-size: 12px;
+  color: #4f6253;
+  margin-bottom: 10px;
+  font-weight: 700;
+}
+
 .collector-dist {
   font-weight: 700;
 }
@@ -1041,6 +1134,35 @@ body::after {
   color: #eaf3e1;
   background: linear-gradient(140deg, #5e7e64, #86a589);
   font-size: 12px;
+  font-weight: 700;
+  margin-top: 6px;
+}
+
+.contact-unavailable {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #7f8f81;
+  font-weight: 700;
+}
+
+.map-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #4f6e53;
+  text-decoration: none;
+}
+
+.map-link:hover {
+  text-decoration: underline;
+}
+
+.services-error,
+.no-services {
+  font-size: 13px;
+  color: #617264;
+  margin: 6px 0 14px;
   font-weight: 700;
 }
 
@@ -1474,3 +1596,4 @@ body::after {
   margin: 10px;
   box-shadow: var(--shadow-card);
 }
+
