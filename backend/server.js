@@ -9,6 +9,8 @@ const userRoutes = require("./routes/userRoutes");
 const serviceRoutes = require("./routes/serviceRoutes");
 const reuseIdeaRoutes = require("./routes/reuseIdeaRoutes");
 const statsRoutes = require("./routes/statsRoutes"); // Added this line
+const ratingsRoutes = require("./routes/ratingsRoutes");
+const pollsRoutes = require("./routes/pollsRoutes");
 
 // MODEL IMPORTS (just load them once)
 require("./models/ReuseIdea");
@@ -26,6 +28,8 @@ app.use("/api/users", userRoutes);
 app.use("/api/services", serviceRoutes);
 app.use("/api/reuse", reuseIdeaRoutes);
 app.use("/api/stats", statsRoutes); // Added this line
+app.use("/api/ratings", ratingsRoutes);
+app.use("/api/polls", pollsRoutes);
 
 // ================= TEST ROUTE =================
 app.get("/", (req, res) => {
